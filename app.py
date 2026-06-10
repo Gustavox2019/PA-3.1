@@ -52,7 +52,6 @@ def generar_data_demo():
 # 2. BARRA LATERAL (Sidebar) - Control de Fuentes de Datos
 st.sidebar.header("⚙️ Configuración del Sistema")
 
-# Variable declarada en la raíz del script (Sin espacios previos para evitar NameError)
 origen_datos = st.sidebar.radio(
     "Selecciona la fuente de datos:",
     ("Consumir automáticamente desde GitHub", "Cargar archivo CSV manualmente")
@@ -64,11 +63,9 @@ es_demo = False
 # Lógica inteligente para el flujo de datos
 if origen_datos == "Consumir automáticamente desde GitHub":
     try:
-        # Paréntesis cerrado correctamente para evitar SyntaxError
         df = pd.read_csv(GITHUB_CSV_URL)
         st.sidebar.success("✅ Conectado a GitHub exitosamente.")
     except Exception as e:
-        # Respaldo si falla la red
         st.sidebar.error("⚠️ Error al conectar con GitHub. Mostrando plantilla de previsualización.")
         df = generar_data_demo()
         es_demo = True
@@ -79,7 +76,7 @@ else:
         df = pd.read_csv(archivo_cargado)
         st.sidebar.success("✅ Archivo local cargado con éxito.")
     else:
-        # Se inyecta la plantilla de muestra en la misma sección si está vacío
+        # Se inyecta la plantilla de muestra de forma automática si no hay archivo arriba
         df = generar_data_demo()
         es_demo = True
         st.sidebar.warning("📌 A la espera del archivo Scopus. Visualizando plantilla guía abajo.")
