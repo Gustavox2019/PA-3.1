@@ -130,11 +130,11 @@ if df is not None:
     else:
         df_filtrado = df
 
-    # --- ORGANIZACIÓN POR PESTAÑAS (Tabs con gráficos al 100% de ancho) ---
-    tab1, tab2, tab3 = st.tabs(["📊 Tendencias e Impacto", "🔬 Análisis de Autores y Fuentes", "📋 Vista de Datos Crudos"])
+    # --- ORGANIZACIÓN POR PESTAÑAS (Títulos optimizados académicamente) ---
+    tab1, tab2, tab3 = st.tabs(["📊 Tendencias y Tipología", "🔬 Análisis de Autores y Fuentes", "📋 Vista de Datos Crudos"])
 
     with tab1:
-        st.subheader("Análisis de Tendencias Temporales e Impacto Metodológico")
+        st.subheader("Análisis de Evolución Temporal y Tipología Documental")
         
         # Gráfico 1: Línea de Tiempo (Publicaciones por Año)
         if 'year' in df_filtrado.columns:
@@ -143,33 +143,33 @@ if df is not None:
             df_year = df_year.sort_values(by='Año')
             
             fig_line = px.line(df_year, x='Año', y='Cantidad de Publicaciones', 
-                               title='Madurez Tecnológica: Publicaciones por Año',
+                               title='Madurez Tecnológica: Evolución de Publicaciones por Año',
                                markers=True, template='plotly_white')
             fig_line.update_layout(xaxis=dict(tickmode='linear', dtick=1))
             st.plotly_chart(fig_line, use_container_width=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ¡INTEGRADO! Gráfico 2: Distribución por Tipo de Documento (Donut Chart)
+        # Gráfico 2: Distribución por Tipo de Documento (Donut Chart)
         if 'document type' in df_filtrado.columns:
             type_counts = df_filtrado['document type'].value_counts().reset_index()
             type_counts.columns = ['Tipo de Documento', 'Cantidad']
 
             fig_type = px.pie(type_counts, values='Cantidad', names='Tipo de Documento', hole=0.4,
-                              title='Distribución por Tipo de Documento en la Investigación',
+                              title='Tipología Documental: Preferencia de Canales de Difusión',
                               color_discrete_sequence=px.colors.qualitative.Safe)
             fig_type.update_traces(textinfo='percent+label')
             st.plotly_chart(fig_type, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Gráfico 3: Artículos más citados (Movido a posición 3 para mantener el orden)
+        # Gráfico 3: Artículos más citados
         if 'cited by' in df_filtrado.columns and 'title' in df_filtrado.columns:
             top_cited = df_filtrado.sort_values(by='cited by', ascending=False).head(10)
             top_cited['titulo_corto'] = top_cited['title'].str.slice(0, 85) + "..."
             
             fig_cited = px.bar(top_cited, x='cited by', y='titulo_corto', orientation='h',
-                               title='Top 10 Artículos con Mayor Impacto (Citas)',
+                               title='Top 10 Artículos con Mayor Impacto Académico (Citas)',
                                labels={'cited by': 'Número de Citas', 'titulo_corto': 'Artículo'},
                                color='cited by', color_continuous_scale='Blues')
             fig_cited.update_layout(yaxis={'categoryorder':'total ascending'})
