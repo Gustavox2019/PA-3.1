@@ -76,7 +76,6 @@ else:
         df = pd.read_csv(archivo_cargado)
         st.sidebar.success("✅ Archivo local cargado con éxito.")
     else:
-        # Se inyecta la plantilla de muestra de forma automática si no hay archivo arriba
         df = generar_data_demo()
         es_demo = True
         st.sidebar.warning("📌 A la espera del archivo Scopus. Visualizando plantilla guía abajo.")
@@ -137,7 +136,7 @@ if df is not None:
     with tab1:
         st.subheader("Análisis de Tendencias Temporales e Impacto Metodológico")
         
-        # Gráfico 1: Línea de Tiempo
+        # Gráfico 1: Línea de Tiempo (Publicaciones por Año)
         if 'year' in df_filtrado.columns:
             df_year = df_filtrado['year'].value_counts().reset_index()
             df_year.columns = ['Año', 'Cantidad de Publicaciones']
@@ -151,7 +150,20 @@ if df is not None:
         
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Gráfico 2: Artículos más citados
+        # ¡INTEGRADO! Gráfico 2: Distribución por Tipo de Documento (Donut Chart)
+        if 'document type' in df_filtrado.columns:
+            type_counts = df_filtrado['document type'].value_counts().reset_index()
+            type_counts.columns = ['Tipo de Documento', 'Cantidad']
+
+            fig_type = px.pie(type_counts, values='Cantidad', names='Tipo de Documento', hole=0.4,
+                              title='Distribución por Tipo de Documento en la Investigación',
+                              color_discrete_sequence=px.colors.qualitative.Safe)
+            fig_type.update_traces(textinfo='percent+label')
+            st.plotly_chart(fig_type, use_container_width=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Gráfico 3: Artículos más citados (Movido a posición 3 para mantener el orden)
         if 'cited by' in df_filtrado.columns and 'title' in df_filtrado.columns:
             top_cited = df_filtrado.sort_values(by='cited by', ascending=False).head(10)
             top_cited['titulo_corto'] = top_cited['title'].str.slice(0, 85) + "..."
@@ -166,7 +178,7 @@ if df is not None:
     with tab2:
         st.subheader("Análisis de Actores Científicos y Canales de Difusión")
         
-        # Gráfico 3: Top Autores
+        # Gráfico 4: Top Autores
         if 'authors' in df_filtrado.columns:
             authors_series = df_filtrado['authors'].dropna().str.split(',').explode().str.strip()
             authors_series = authors_series[authors_series != ""]
@@ -181,7 +193,7 @@ if df is not None:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Gráfico 4: Top Revistas
+        # Gráfico 5: Top Revistas
         if 'source title' in df_filtrado.columns:
             top_sources = df_filtrado['source title'].value_counts().head(10).reset_index()
             top_sources.columns = ['Revista / Fuente', 'Artículos']
