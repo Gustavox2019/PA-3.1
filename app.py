@@ -12,7 +12,7 @@ st.set_page_config(
 
 # 2. ENLACE DIRECTO AL CSV EN GITHUB (Consumo Automatizado)
 # IMPORTANTE: Reemplaza con tu usuario de GitHub y el nombre correcto de tu repositorio público
-GITHUB_CSV_URL = "https://raw.githubusercontent.com/TU_USUARIO/TU_REPOSITORIO/main/PA4.csv"
+GITHUB_CSV_URL = "https://raw.githubusercontent.com/Gustavox2019/PA-3.1/refs/heads/main/PA4.csv"
 
 # 3. BARRA LATERAL (Sidebar) - Control de Fuentes de Datos y Filtros
 st.sidebar.header("⚙️ Configuración del Sistema")
