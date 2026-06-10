@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 1. CONFIGURACIÓN DE LA PÁGINA (Diseño limpio y profesional)
+# 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
     page_title="IA en Gestión de Inventarios",
     page_icon="📦",
@@ -10,39 +10,92 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. ENLACE REAL AL CSV EN GITHUB (Consumo Automatizado)
+# URL Real de tu GitHub
 GITHUB_CSV_URL = "https://raw.githubusercontent.com/Gustavox2019/PA-3.1/refs/heads/main/PA4.csv"
 
-# 3. BARRA LATERAL (Sidebar) - Control de Fuentes de Datos y Filtros
+# --- FUNCIÓN PARA GENERAR DATA DE DEMOSTRACIÓN (MAQUETA) ---
+def generar_data_demo():
+    data_demo = {
+        'year': [2020, 2021, 2021, 2022, 2022, 2023, 2023, 2024, 2024, 2025, 2025, 2026],
+        'title': [
+            'Predictive AI for Commercial Inventory Optimization',
+            'Machine Learning Models in Retail Supply Chains',
+            'Deep Learning for Demand Forecasting in Warehouses',
+            'Automated Stock Replenishment using Neural Networks',
+            'AI-Driven Multi-Echelon Inventory Systems',
+            'Reinforcement Learning for Dynamic Safety Stock',
+            'IoT and AI Integration for Real-Time Logistics',
+            'Big Data Analytics in Commercial Distribution',
+            'Heuristic Algorithms for Stockout Prevention',
+            'Generative AI for Smart Warehouse Management',
+            'Transformers Models applied to Inventory Planning',
+            'Next-Gen AI Architectures for Global Supply Chains'
+        ],
+        'authors': [
+            'Smith, J.', 'Taylor, M.', 'Wang, L.', 'Garcia, A.', 'Li, Y.', 
+            'Kim, D.', 'Martinez, R.', 'Chen, H.', 'Smith, J.', 'Taylor, M.',
+            'Wang, L.', 'Garcia, A.'
+        ],
+        'source title': [
+            'Journal of Logistics and AI', 'International Retail Review', 
+            'IEEE Transactions on Automation', 'Supply Chain Management Journal',
+            'Journal of Logistics and AI', 'International Retail Review',
+            'IEEE Transactions on Automation', 'Supply Chain Management Journal',
+            'Journal of Logistics and AI', 'International Retail Review',
+            'IEEE Transactions on Automation', 'Supply Chain Management Journal'
+        ],
+        'cited by': [120, 85, 95, 110, 45, 60, 30, 25, 15, 10, 5, 1],
+        'document type': ['Article', 'Article', 'Conference Paper', 'Article', 'Conference Paper', 'Article', 'Article', 'Book Chapter', 'Article', 'Article', 'Conference Paper', 'Article']
+    }
+    return pd.DataFrame(data_demo)
+
+# 2. BARRA LATERAL (Sidebar)
 st.sidebar.header("⚙️ Configuración del Sistema")
 
 origen_datos = st.sidebar.radio(
     "Selecciona la fuente de datos:",
-    ("Consumir automáticamente desde GitHub", "Cargar archivo CSV manualmente")
+    ("Ver Plantilla de Demostración (Previsualización)", 
+     "Consumir automáticamente desde GitHub", 
+     "Cargar archivo CSV manualmente")
 )
 
 df = None
+es_demo = False
 
-if origen_datos == "Consumir automáticamente desde GitHub":
+# Lógica de carga según la selección
+if origen_datos == "Ver Plantilla de Demostración (Previsualización)":
+    df = generar_data_demo()
+    es_demo = True
+    st.sidebar.info("💡 Mostrando plantilla de previsualización. Explora los gráficos antes de conectar tus datos reales.")
+elif origen_datos == "Consumir automáticamente desde GitHub":
     try:
         df = pd.read_csv(GITHUB_CSV_URL)
         st.sidebar.success("✅ Conectado a GitHub exitosamente.")
     except Exception as e:
-        st.sidebar.error("⚠️ No se pudo conectar automáticamente. Revisa la URL o carga el archivo manual.")
+        st.sidebar.error("⚠️ Error de conexión. Usando plantilla de demostración por seguridad.")
+        df = generar_data_demo()
+        es_demo = True
 else:
     archivo_cargado = st.sidebar.file_uploader("Sube tu archivo Scopus CSV aquí", type=["csv"])
     if archivo_cargado is not None:
         df = pd.read_csv(archivo_cargado)
         st.sidebar.success("✅ Archivo local cargado con éxito.")
+    else:
+        df = generar_data_demo()
+        es_demo = True
+        st.sidebar.warning("A la espera de tu archivo CSV. Visualizando plantilla de demostración abajo.")
 
-# 4. PROCESAMIENTO Y RENDERIZADO DEL DASHBOARD
+# 3. PROCESAMIENTO Y RENDERIZADO DEL DASHBOARD
 if df is not None:
-    # Estandarizar nombres de columnas a minúsculas para evitar conflictos
+    # Estandarizar nombres de columnas a minúsculas
     df.columns = df.columns.str.lower().str.strip()
     
-    # Asegurar formato numérico para las citas
     if 'cited by' in df.columns:
         df['cited by'] = pd.to_numeric(df['cited by'], errors='coerce').fillna(0)
+
+    # --- BANNER DE ALERTA DE PREVISUALIZACIÓN ---
+    if es_demo:
+        st.warning("📢 **MODO PREVISUALIZACIÓN ACTIVO:** Estás viendo la estructura gráfica y los temas con datos simulados de ejemplo. Conecta tu cuenta en la barra lateral para ver tus métricas reales de Scopus.")
 
     # --- SECCIÓN DE CABECERA (Pregunta de Investigación y Keywords) ---
     st.title("📦 Inteligencia Artificial para la Optimización de Inventarios")
@@ -88,7 +141,7 @@ if df is not None:
     with tab1:
         st.subheader("Análisis de Tendencias Temporales e Impacto Metodológico")
         
-        # Gráfico 1: Ocupa toda la fila superior de la pestaña (100% de ancho)
+        # Gráfico 1: Línea de Tiempo (100% ancho)
         if 'year' in df_filtrado.columns:
             df_year = df_filtrado['year'].value_counts().reset_index()
             df_year.columns = ['Año', 'Cantidad de Publicaciones']
@@ -100,12 +153,11 @@ if df is not None:
             fig_line.update_layout(xaxis=dict(tickmode='linear', dtick=1))
             st.plotly_chart(fig_line, use_container_width=True)
         
-        st.markdown("<br>", unsafe_allow_html=True) # Espaciador estético
+        st.markdown("<br>", unsafe_allow_html=True)
 
-        # Gráfico 2: Ocupa toda la fila inferior de la pestaña (100% de ancho)
+        # Gráfico 2: Artículos más citados (100% ancho)
         if 'cited by' in df_filtrado.columns and 'title' in df_filtrado.columns:
             top_cited = df_filtrado.sort_values(by='cited by', ascending=False).head(10)
-            # El texto se amplía para un ancho de fila completo
             top_cited['titulo_corto'] = top_cited['title'].str.slice(0, 85) + "..."
             
             fig_cited = px.bar(top_cited, x='cited by', y='titulo_corto', orientation='h',
@@ -118,7 +170,7 @@ if df is not None:
     with tab2:
         st.subheader("Análisis de Actores Científicos y Canales de Difusión")
         
-        # Gráfico 3: Ocupa toda la fila superior en Tab 2 (100% de ancho)
+        # Gráfico 3: Top Autores (100% ancho)
         if 'authors' in df_filtrado.columns:
             authors_series = df_filtrado['authors'].dropna().str.split(',').explode().str.strip()
             authors_series = authors_series[authors_series != ""]
@@ -127,13 +179,13 @@ if df is not None:
             top_authors = top_authors.sort_values(by='Documentos', ascending=True)
 
             fig_author = px.bar(top_authors, x='Documentos', y='Autor', orientation='h',
-                                title='Top 10 Autores con Mayor Producción Científica',
+                                title='Top 10 Autores con Mayor Production Científica',
                                 text_auto=True, color='Documentos', color_continuous_scale='Cividis')
             st.plotly_chart(fig_author, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Gráfico 4: Ocupa toda la fila inferior en Tab 2 (100% de ancho)
+        # Gráfico 4: Top Revistas (100% ancho)
         if 'source title' in df_filtrado.columns:
             top_sources = df_filtrado['source title'].value_counts().head(10).reset_index()
             top_sources.columns = ['Revista / Fuente', 'Artículos']
@@ -158,6 +210,3 @@ if df is not None:
         "Las publicaciones se concentran estratégicamente en revistas de ingeniería de sistemas y ciencias de decisiones, evidenciando que el **Demand Forecasting (Predicción de la Demanda)** "
         "es el enfoque metodológico de Inteligencia Artificial que más impacto genera para mitigar el sobrestock y optimizar las cadenas de suministro en empresas comerciales modernas."
     )
-
-else:
-    st.info("👋 ¡Bienvenido! Selecciona un método de obtención de datos en la barra lateral izquierda para comenzar a analizar la metadata científica.")
