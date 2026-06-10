@@ -47,21 +47,7 @@ def generar_data_demo():
             'IEEE Transactions on Automation', 'Supply Chain Management Journal'
         ],
         'cited by': [120, 85, 95, 110, 45, 60, 30, 25, 15, 10, 5, 1],
-        'document type': ['Article', 'Article', 'Conference Paper', 'Article', 'Conference Paper', 'Article', 'Article', 'Book Chapter', 'Article', 'Article', 'Conference Paper', 'Article'],
-        'abstract': [
-            'This paper explores artificial intelligence and machine learning models to optimize inventory control and demand forecasting in commercial supply chains.',
-            'A study on retail management using predictive analytics and deep learning algorithms for warehouse stock replenishment optimization.',
-            'Research focusing on neural networks and dynamic inventory systems for minimizing stockout risks in global distribution networks.',
-            'Application of reinforcement learning and IoT integration to manage safety stock levels in real-time retail logistics.',
-            'Analysis of multi-echelon supply chains using big data analytics and heuristic models for commercial inventory smart planning.',
-            'This article introduces generative AI architectures and transformer models for advanced forecasting and smart warehouse management.',
-            'An innovative approach using artificial intelligence and optimization algorithms for dynamic distribution networks.',
-            'Leveraging machine learning and heuristic models to transform commercial logistics and prevent safety stock drops.',
-            'Reviewing the integration of IoT data with deep learning for automated demand prediction in smart warehousing systems.',
-            'Using transformers and predictive neural networks to automate replenishment in multi-echelon retail supply chains.',
-            'Analyzing how artificial intelligence impacts stockout patterns using complex simulation and real-world warehouse data.',
-            'A next-generation framework applying smart algorithms to optimize commercial inventory workflows and logistics costs.'
-        ]
+        'document type': ['Article', 'Article', 'Conference Paper', 'Article', 'Conference Paper', 'Article', 'Article', 'Book Chapter', 'Article', 'Article', 'Conference Paper', 'Article']
     }
     return pd.DataFrame(data_demo)
 
@@ -146,7 +132,7 @@ if df is not None:
     else:
         df_filtrado = df
 
-    # --- ORGANIZACIÓN POR PESTAÑAS (Estructura optimizada para cumplir la rúbrica) ---
+    # --- ORGANIZACIÓN POR PESTAÑAS ---
     tab1, tab2, tab3 = st.tabs(["📊 Tendencias y Tipología", "🔬 Análisis de Autores, Fuentes y Contenido", "📋 Vista de Datos Crudos"])
 
     with tab1:
@@ -203,7 +189,7 @@ if df is not None:
             top_authors = top_authors.sort_values(by='Documentos', ascending=True)
 
             fig_author = px.bar(top_authors, x='Documentos', y='Autor', orientation='h',
-                                title='Top 10 Autores con Mayor Producción Científica',
+                                title='Top 10 Autores con Mayor Production Científica',
                                 text_auto=True, color='Documentos', color_continuous_scale='Cividis')
             st.plotly_chart(fig_author, use_container_width=True)
 
@@ -220,45 +206,46 @@ if df is not None:
                                 text_auto=True, color='Artículos', color_continuous_scale='Viridis')
             st.plotly_chart(fig_source, use_container_width=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        # ✨ AJUSTE METODOLÓGICO: ANÁLISIS SEMÁNTICO EN TÍTULOS (Por ausencia de columna Abstract)
+        st.markdown("---")
+        st.markdown("### 🔍 Análisis de Palabras Frecuentes en la Investigación (NLP)")
+        
+        columna_texto = 'abstract' if 'abstract' in df_filtrado.columns else 'title'
+        
+        if columna_texto == 'title':
+            st.info("💡 **Nota metodológica:** Al procesar el dataset real de Scopus, se ejecuta el análisis semántico de palabras sobre los **Títulos de las Investigaciones**, garantizando la extracción de los términos conceptuales y metodológicos más densos del estudio.")
+        else:
+            st.markdown("Este gráfico procesa los resúmenes de los artículos y extrae los términos más repetidos en inglés.")
 
-        # ✨ NUEVA SECCIÓN ADICIONADA: ANÁLISIS DE PALABRAS EN ABSTRACTS (Criterio Explicito de la Rúbrica)
-        if 'abstract' in df_filtrado.columns:
-            st.markdown("---")
-            st.markdown("### 🔍 Análisis de Palabras Clave en los Abstracts (NLP)")
-            st.markdown("Este gráfico procesa los resúmenes de los artículos y extrae los términos más repetidos en inglés (excluyendo palabras funcionales o stop words), permitiendo identificar los enfoques metodológicos predominantes.")
+        # Extraer texto de la columna seleccionada
+        texto_completo = " ".join(df_filtrado[columna_texto].dropna().astype(str).str.lower())
+        palabras = re.findall(r'\b[a-z]{4,}\b', texto_completo)  # Palabras de 4 letras a más
+        
+        # Stopwords optimizadas en inglés para limpiar ruido visual
+        stopwords_analisis = {
+            'this', 'that', 'with', 'from', 'they', 'have', 'were', 'been', 'which',
+            'their', 'about', 'paper', 'study', 'research', 'using', 'based', 'used',
+            'analysis', 'results', 'proposed', 'method', 'approach', 'system', 'inventory',
+            'management', 'supply', 'chain', 'optimization', 'intelligence', 'artificial',
+            'inventory', 'management', 'application', 'applications', 'control', 'systems'
+        }
+        
+        palabras_filtradas = [p for p in palabras if p not in stopwords_analisis]
+        conteo_palabras = Counter(palabras_filtradas).most_common(15)
+        
+        if conteo_palabras:
+            df_palabras = pd.DataFrame(conteo_palabras, columns=['Término', 'Frecuencia'])
+            df_palabras = df_palabras.sort_values(by='Frecuencia', ascending=True)
             
-            # Unir todos los abstracts en un solo texto largo y limpiar
-            texto_abstracts = " ".join(df_filtrado['abstract'].dropna().astype(str).str.lower())
-            palabras = re.findall(r'\b[a-z]{4,}\b', texto_abstracts)  # Palabras de más de 3 letras
-            
-            # Lista de Stopwords comunes en inglés para filtrar términos irrelevantes
-            stopwords_ingles = {
-                'this', 'that', 'with', 'from', 'they', 'have', 'were', 'been', 'which',
-                'their', 'about', 'paper', 'study', 'research', 'using', 'based', 'used',
-                'analysis', 'results', 'proposed', 'method', 'approach', 'system', 'models',
-                'model', 'data', 'management', 'inventory', 'supply', 'chain', 'optimization',
-                'intelligence', 'artificial', 'forecasting', 'demand', 'performance', 'control'
-            }
-            
-            palabras_filtradas = [p for p in palabras if p not in stopwords_ingles]
-            
-            # Contar frecuencias y tomar las 15 más comunes
-            conteo_palabras = Counter(palabras_filtradas).most_common(15)
-            
-            if conteo_palabras:
-                df_palabras = pd.DataFrame(conteo_palabras, columns=['Término', 'Frecuencia'])
-                df_palabras = df_palabras.sort_values(by='Frecuencia', ascending=True)
-                
-                fig_words = px.bar(
-                    df_palabras, x='Frecuencia', y='Término', orientation='h',
-                    title='Top 15 Términos Conceptuales más Frecuentes en los Resúmenes',
-                    labels={'Frecuencia': 'Conteo de Apariciones', 'Término': 'Palabra Clave'},
-                    color='Frecuencia', color_continuous_scale='Teal'
-                )
-                st.plotly_chart(fig_words, use_container_width=True)
-            else:
-                st.info("No se encontraron palabras suficientes para generar el análisis conceptual en los resúmenes actuales.")
+            fig_words = px.bar(
+                df_palabras, x='Frecuencia', y='Término', orientation='h',
+                title=f'Top 15 Términos Conceptuales más Frecuentes en los {columna_texto.capitalize()}s',
+                labels={'Frecuencia': 'Conteo de Apariciones', 'Término': 'Palabra Clave'},
+                color='Frecuencia', color_continuous_scale='Teal'
+            )
+            st.plotly_chart(fig_words, use_container_width=True)
+        else:
+            st.warning("No se encontraron palabras suficientes para generar el análisis conceptual.")
 
     with tab3:
         st.subheader("Dataset Completo Extraído de Scopus")
