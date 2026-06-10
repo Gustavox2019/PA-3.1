@@ -52,15 +52,29 @@ def generar_data_demo():
 # 2. BARRA LATERAL (Sidebar) - Simplificada a solo 2 Opciones
 st.sidebar.header("⚙️ Configuración del Sistema")
 
-origen_datos = st.sidebar.radio(
-    "Selecciona la fuente de datos:",
-    ("Consumir automáticamente desde GitHub", "Cargar archivo CSV manualmente")
-)
-
-df = None
-es_demo = False
+# ==============================================================================
+# BLOQUE CORREGIDO: REEMPLAZA ESTA SECCIÓN EN TU APP.PY (Líneas 55 a 76 aprox.)
+# ==============================================================================
 
 # Lógica inteligente de flujo de datos
 if origen_datos == "Consumir automáticamente desde GitHub":
     try:
-        df = pd.read_csv(GITHUB_CSV_URL
+        # AQUÍ ESTÁ LA CORRECCIÓN: Cerramos correctamente el paréntesis al final
+        df = pd.read_csv(GITHUB_CSV_URL)
+        st.sidebar.success("✅ Conectado a GitHub exitosamente.")
+    except Exception as e:
+        # Si falla GitHub por red, muestra la plantilla interactiva en lugar de romperse
+        st.sidebar.error("⚠️ Error al conectar con GitHub. Mostrando plantilla de previsualización.")
+        df = generar_data_demo()
+        es_demo = True
+else:
+    # Sección manual de carga
+    archivo_cargado = st.sidebar.file_uploader("Sube tu archivo Scopus CSV aquí", type=["csv"])
+    if archivo_cargado is not None:
+        df = pd.read_csv(archivo_cargado)
+        st.sidebar.success("✅ Archivo local cargado con éxito.")
+    else:
+        # Mientras no cargue el archivo, se inyecta la plantilla de muestra automáticamente
+        df = generar_data_demo()
+        es_demo = True
+        st.sidebar.warning("📌 A la espera del archivo Scopus. Visualizando plantilla guía abajo.")
