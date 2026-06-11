@@ -260,3 +260,91 @@ if df is not None:
         # Gráfico Original: Top Revistas
         if 'source title' in df_filtrado.columns:
             top_sources = df_filtrado['source title'].value_counts().head(10).reset_index()
+            top_sources.columns = ['Revista / Fuente', 'Artículos']
+            top_sources = top_sources.sort_values(by='Artículos', ascending=True)
+
+            fig_source = px.bar(top_sources, x='Artículos', y='Revista / Fuente', orientation='h',
+                                title='Top 10 Revistas donde se Publica sobre IA e Inventarios',
+                                text_auto=True, color='Artículos', color_continuous_scale='Viridis')
+            st.plotly_chart(fig_source, use_container_width=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # 🔄 NUEVO INTEGRADO - GRÁFICO 1: Burbujas de Conceptos Específicos (Keywords de Autor)
+        if 'author keywords' in df_filtrado.columns:
+            st.markdown("### 🏷️ Minería de Textos: Palabras Clave del Autor")
+            keywords_totales = ", ".join(df_filtrado['author keywords'].dropna().astype(str).str.lower())
+            lista_kw = [k.strip() for k in re.split(r'[;,]', keywords_totales) if len(k.strip()) > 3]
+
+            conteo_kw = Counter(lista_kw)
+            
+            # Diccionario de Stopwords de tu código original
+            stopwords_keywords = {
+                'artificial intelligence', 'inventory management', 'supply chain', 'inventory control',
+                'supply chain management', 'optimization', 'management', 'analysis', 'system', 'systems',
+                'models', 'model', 'approach', 'research', 'paper', 'results', 'based', 'using', 'applications',
+                'case', 'study', 'performance', 'framework', 'industry', 'applied', 'application'
+            }
+
+            kw_filtradas = {k: v for k, v in conteo_kw.items() if k not in stopwords_keywords}
+
+            if kw_filtradas:
+                df_g1 = pd.DataFrame(kw_filtradas.items(), columns=['Concepto Clave', 'Frecuencia']).sort_values(by='Frecuencia', ascending=False).head(20)
+
+                fig1 = px.scatter(
+                    df_g1, x='Frecuencia', y='Concepto Clave', size='Frecuencia', color='Frecuencia',
+                    title='Gráfico de Burbujas: Sub-técnicas de IA y Componentes Logísticos más Investigados',
+                    color_continuous_scale='Cividis', template='plotly_white'
+                )
+                fig1.update_layout(yaxis={'categoryorder':'total ascending'})
+                st.plotly_chart(fig1, use_container_width=True)
+            else:
+                st.info("ℹ️ No se encontraron suficientes palabras clave para mostrar tras el filtrado.")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Gráfico Original: Análisis Semántico en Abstracts (NLP)
+        if 'abstract' in df_filtrado.columns:
+            st.markdown("### 🔍 Análisis de Palabras Frecuentes en los Abstracts (NLP)")
+            
+            texto_completo = " ".join(df_filtrado['abstract'].dropna().astype(str).str.lower())
+            palabras = re.findall(r'\b[a-z]{4,}\b', texto_completo)
+            
+            stopwords_abstracts = {
+                'this', 'that', 'with', 'from', 'they', 'have', 'were', 'been', 'which',
+                'their', 'about', 'paper', 'study', 'research', 'using', 'based', 'used',
+                'analysis', 'results', 'proposed', 'method', 'approach', 'system', 'inventory',
+                'management', 'supply', 'chain', 'optimization', 'intelligence', 'artificial',
+                'application', 'applications', 'control', 'systems', 'models', 'model', 'results',
+                'framework', 'efficient', 'performance', 'paper', 'studies', 'presents', 'developed'
+            }
+            
+            palabras_filtradas = [p for p in palabras if p not in stopwords_abstracts]
+            conteo_palabras = Counter(palabras_filtradas).most_common(15)
+            
+            if conteo_palabras:
+                df_palabras = pd.DataFrame(conteo_palabras, columns=['Término', 'Frecuencia'])
+                df_palabras = df_palabras.sort_values(by='Frecuencia', ascending=True)
+                
+                fig_words = px.bar(
+                    df_palabras, x='Frecuencia', y='Término', orientation='h',
+                    title='Top 15 Términos Conceptuales más Frecuentes en los Resúmenes de Scopus',
+                    labels={'Frecuencia': 'Conteo de Apariciones', 'Término': 'Palabra Clave'},
+                    color='Frecuencia', color_continuous_scale='Teal'
+                )
+                st.plotly_chart(fig_words, use_container_width=True)
+
+    with tab3:
+        st.subheader("Dataset Completo Extraído de Scopus")
+        st.markdown("A continuación se presentan los metadatos esenciales limpios utilizados para el análisis estadístico:")
+        columnas_visibles = [c for c in ['authors', 'title', 'year', 'source title', 'cited by', 'document type', 'author keywords', 'abstract'] if c in df_filtrado.columns]
+        st.dataframe(df_filtrado[columnas_visibles], use_container_width=True)
+
+    # --- SECCIÓN DE CONCLUSIONES ---
+    st.markdown("---")
+    st.subheader("💡 Conclusiones del Análisis de Datos")
+    st.success(
+        f"El análisis de los **{total_articulos}** artículos científicos indexados en Scopus demuestra una fuerte tendencia creciente hacia la automatización logística. "
+        "Las publicaciones se concentran estratégicamente en revistas de ingeniería de sistemas y ciencias de decisiones, evidenciando que el **Demand Forecasting (Predicción de la Demanda)** "
+        "es el enfoque metodológico de Inteligencia Artificial que más impacto genera para mitigar el sobrestock y optimizar las cadenas de suministro en empresas comerciales modernas."
+    )
