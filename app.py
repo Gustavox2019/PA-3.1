@@ -15,7 +15,7 @@ st.set_page_config(
 # Enlace real a tu repositorio de GitHub
 GITHUB_CSV_URL = "https://raw.githubusercontent.com/Gustavox2019/PA-3.1/refs/heads/main/PA3.csv"
 
-# --- FUNCIÓN PARA GENERAR DATA DE DEMOSTRACIÓN (PLANTILLA MOCK CON KEYWORDS INCLUIDAS) ---
+# --- FUNCIÓN PARA GENERAR DATA DE DEMOSTRACIÓN ---
 def generar_data_demo():
     data_demo = {
         'year': [2020, 2021, 2021, 2022, 2022, 2023, 2023, 2024, 2024, 2025, 2025, 2026],
@@ -79,7 +79,7 @@ def generar_data_demo():
     }
     return pd.DataFrame(data_demo)
 
-# 2. BARRA LATERAL (Sidebar) - Control de Fuentes de Datos
+# 2. BARRA LATERAL (Sidebar)
 st.sidebar.header("⚙️ Configuración del Sistema")
 
 origen_datos = st.sidebar.radio(
@@ -90,7 +90,6 @@ origen_datos = st.sidebar.radio(
 df = None
 es_demo = False
 
-# Lógica inteligente para el flujo de datos
 if origen_datos == "Consumir automáticamente desde GitHub":
     try:
         df = pd.read_csv(GITHUB_CSV_URL)
@@ -107,87 +106,22 @@ else:
     else:
         df = generar_data_demo()
         es_demo = True
-        st.sidebar.warning("📌 A la espera del archivo Scopus. Visualizando plantilla guía abajo.")
+        st.sidebar.warning("📌 A la espera del archivo Scopus.")
 
 # 3. PROCESAMIENTO Y RENDERIZADO DEL DASHBOARD
 if df is not None:
-    # Estandarizar nombres de columnas a minúsculas y limpiar espacios para evitar fallos de Scopus
     df.columns = df.columns.str.lower().str.strip()
-    
     if 'cited by' in df.columns:
         df['cited by'] = pd.to_numeric(df['cited by'], errors='coerce').fillna(0)
 
-    # --- INDICADOR DE MODO PLANTILLA / DEMO ---
     if es_demo:
-        st.warning("📢 **MODO PREVISUALIZACIÓN ACTIVO:** Estás viendo la estructura del dashboard con datos simulados de ejemplo. Cuando subas tu archivo CSV o conectes GitHub correctamente, tus métricas reales de Scopus reemplazarán estos gráficos.")
+        st.warning("📢 **MODO PREVISUALIZACIÓN ACTIVO:** Viendo estructura con datos simulados.")
 
-    # --- SECCIÓN DE CABECERA ---
+    # --- CABECERA ---
     st.title("📦 Inteligencia Artificial para la Optimización de Inventarios")
     st.markdown("### **Pregunta de Investigación:**")
     st.info("¿Cómo se utiliza la Inteligencia Artificial para optimizar la gestión de inventarios en empresas comerciales?")
     
-    st.markdown("**Palabras Clave (Keywords) de Búsqueda:**")
-    cols_kw = st.columns(4)
-    keywords = ["Artificial Intelligence", "Inventory Management", "Supply Chain", "Demand Forecasting"]
-    for i, kw in enumerate(keywords):
-        cols_kw[i].markdown(f"🔍 `{kw}`")
-    
-    # --- 🧭 NUEVA LEYENDA DEL DASHBOARD Y GUÍA DE GRÁFICOS (Estilo ChurnAI Horizon) ---
-    with st.expander("📖 Leyenda de Negocio y Utilidad de los Gráficos", expanded=False):
-        st.markdown("### 🧭 ¿Para qué nos sirve cada gráfico en nuestra investigación?")
-        
-        # Columnas explicativas de los Gráficos de la Pestaña 1
-        st.markdown("#### 📊 Pestaña 1: Tendencias y Tipología")
-        g_col1, g_col2 = st.columns(2)
-        with g_col1:
-            st.markdown("**📈 Evolución de Publicaciones por Año**")
-            st.caption("Muestra la *madurez y vigencia* del tema. Nos sirve para justificar si el uso de IA en inventarios es una tendencia creciente que las empresas están adoptando con mayor fuerza año tras año.")
-            
-            st.markdown("**🕳️ Tipología Documental (Gráfico de Torta)**")
-            st.caption("Muestra el *nivel de validación científica*. Si predominan los 'Articles' sobre las conferencias, nos sirve para demostrar que las soluciones de IA ya fueron probadas y validadas en entornos reales.")
-            
-        with g_col2:
-            st.markdown("**🔮 Intensidad Tecnológica (Burbujas Temporales)**")
-            st.caption("Rastrea la *evolución del 'CÓMO'*. Nos sirve para explicar cómo la industria pasó de usar analítica predictiva simple a enfoques avanzados como Deep Learning o algoritmos de reabastecimiento autónomo.")
-            
-            st.markdown("**⭐ Artículos más Citados (Barras Horizontales)**")
-            st.caption("Filtra el *impacto académico*. Nos sirve para identificar los casos de éxito, algoritmos de referencia y autores clave en los que debemos fundamentar nuestras conclusiones teóricas.")
-
-        st.markdown("---")
-        
-        # Columnas explicativas de los Gráficos de la Pestaña 2
-        st.markdown("#### 🔬 Pestaña 2: Análisis de Autores, Fuentes y Contenido")
-        g_col3, g_col4 = st.columns(2)
-        with g_col3:
-            st.markdown("**👤 Top 10 Autores con Mayor Producción**")
-            st.caption("Ubica a los *líderes de opinión*. Nos sirve para rastrear qué investigadores o centros de innovación están liderando los cambios tecnológicos en la logística comercial.")
-            
-            st.markdown("**🏢 Top 10 Revistas Indexadas**")
-            st.caption("Muestra el *enfoque disciplinario*. Nos sirve para saber si la IA se aborda desde la informática teórica o si está enfocada directamente en la ingeniería operativa y la toma de decisiones empresariales.")
-            
-        with g_col4:
-            st.markdown("**🏷️ Conceptos Específicos (Keywords de Autor)**")
-            st.caption("Identifica las *herramientas exactas*. Al limpiar los términos obvios, nos sirve para descubrir en qué áreas críticas del almacén (como el cálculo del *Safety Stock*) se está aplicando la IA.")
-            
-            st.markdown("**🔍 Palabras Frecuentes en los Resúmenes (NLP)**")
-            st.caption("Descubre el *propósito de fondo*. Analiza los resúmenes completos para extraer los dolores del negocio (como mitigar la *incertidumbre* o reducir *costos*) que la IA busca solucionar.")
-
-        st.markdown("---")
-        
-        # Glosario Rápido de Negocio
-        st.markdown("#### 📑 Glosario de Conceptos Core Detectados")
-        leg_col1, leg_col2, leg_col3, leg_col4 = st.columns(4)
-        with leg_col1:
-            st.info("**Demand Forecasting:** IA aplicada a predecir compras futuras usando patrones históricos y estacionalidad.")
-        with leg_col2:
-            st.success("**Safety Stock:** Modelado algorítmico para mantener inventarios de reserva óptimos y evitar desabastecimientos.")
-        with leg_col3:
-            st.warning("**Auto-Replenishment:** Disparo automático de órdenes de compra exactas calculadas por redes neuronales.")
-        with leg_col4:
-            st.error("**Multi-Echelon:** Optimización coordinada de múltiples almacenes y tiendas para bajar costos globales.")
-
-    st.markdown("---")
-
     # --- BLOQUE DE MÉTRICAS CLAVE (KPIs) ---
     total_articulos = len(df)
     total_citas = int(df['cited by'].sum()) if 'cited by' in df.columns else 0
@@ -196,209 +130,174 @@ if df is not None:
     kpi1, kpi2, kpi3 = st.columns(3)
     kpi1.metric(label="📚 Artículos Totales", value=total_articulos)
     kpi2.metric(label="⭐ Citas Globales Acumuladas", value=total_citas)
-    kpi3.metric(label="🏢 Revistas / Fuentes Indexadas", value=total_revistas)
+    kpi3.metric(label="🏢 Revistas Indexadas", value=total_revistas)
 
     st.markdown("---")
 
-    # --- CONTROL DE FILTROS LATERALES ---
+    # --- FILTROS ---
     if 'year' in df.columns:
         anios_disponibles = sorted(df['year'].dropna().unique().astype(int))
-        st.sidebar.subheader("🎯 Filtrar Resultados")
-        anios_seleccionados = st.sidebar.multiselect(
-            "Selecciona los años de publicación:",
-            options=anios_disponibles,
-            default=anios_disponibles
-        )
+        anios_seleccionados = st.sidebar.multiselect("Selecciona los años:", options=anios_disponibles, default=anios_disponibles)
         df_filtrado = df[df['year'].isin(anios_seleccionados)]
     else:
         df_filtrado = df
 
-    # --- ORGANIZACIÓN POR PESTAÑAS ---
-    tab1, tab2, tab3 = st.tabs(["📊 Tendencias y Tipología", "🔬 Análisis de Autores, Fuentes y Contenido", "📋 Vista de Datos Crudos"])
+    # --- PESTAÑAS ---
+    tab1, tab2, tab3 = st.tabs(["📊 Tendencias y Tipología", "🔬 Análisis de Autores y Contenido", "📋 Datos Crudos"])
 
     with tab1:
-        st.subheader("Análisis de Evolución Temporal y Tipología Documental")
+        st.subheader("Evolución Temporal y Tipología Documental")
         
-        # Gráfico Original: Línea de Tiempo
+        # 1. Gráfico de Línea Temporal
         if 'year' in df_filtrado.columns:
-            df_year = df_filtrado['year'].value_counts().reset_index()
-            df_year.columns = ['Año', 'Cantidad de Publicaciones']
-            df_year = df_year.sort_values(by='Año')
-            
-            fig_line = px.line(df_year, x='Año', y='Cantidad de Publicaciones', 
-                               title='Madurez Tecnológica: Evolución de Publicaciones por Año',
-                               markers=True, template='plotly_white')
-            fig_line.update_layout(xaxis=dict(tickmode='linear', dtick=1))
-            st.plotly_chart(fig_line, use_container_width=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
+            c1, c2 = st.columns([3, 1])
+            with c1:
+                df_year = df_filtrado['year'].value_counts().reset_index()
+                df_year.columns = ['Año', 'Cantidad de Publicaciones']
+                df_year = df_year.sort_values(by='Año')
+                fig_line = px.line(df_year, x='Año', y='Cantidad de Publicaciones', markers=True, template='plotly_white', title='Evolución de Publicaciones por Año')
+                fig_line.update_layout(xaxis=dict(tickmode='linear', dtick=1))
+                st.plotly_chart(fig_line, use_container_width=True)
+            with c2:
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.info("**¿Para qué sirve?**\n\nMide la **vigencia y adopción** del tema. Valida si la optimización con IA es una tendencia creciente en el mercado.")
 
-        # 🔄 NUEVO INTEGRADO - GRÁFICO 2: Intensidad Tecnológica por Año (Burbujas Temporales)
+        st.markdown("---")
+
+        # 2. Gráfico de Burbujas Temporales
         if 'year' in df_filtrado.columns and 'author keywords' in df_filtrado.columns:
-            df_kw_year = df_filtrado[['year', 'author keywords']].dropna()
-            df_kw_year['author keywords'] = df_kw_year['author keywords'].str.lower()
+            c3, c4 = st.columns([3, 1])
+            with c3:
+                df_kw_year = df_filtrado[['year', 'author keywords']].dropna()
+                df_kw_year['author keywords'] = df_kw_year['author keywords'].str.lower()
+                tecnologias_rastreo = ['machine learning', 'deep learning', 'demand forecasting', 'predictive analytics', 'neural networks', 'big data', 'reinforcement learning', 'internet of things', 'blockchain']
+                registros_tiempo = []
+                for idx, row in df_kw_year.iterrows():
+                    anio = int(row['year'])
+                    texto_kw = str(row['author keywords'])
+                    for tech in tecnologias_rastreo:
+                        if tech in texto_kw: registros_tiempo.append({'Año': anio, 'Técnica': tech})
+                
+                if registros_tiempo:
+                    df_matrix = pd.DataFrame(registros_tiempo)
+                    df_grouped = df_matrix.value_counts().reset_index(name='Estudios').sort_values(by='Año')
+                    fig2 = px.scatter(df_grouped, x='Año', y='Técnica', size='Estudios', color='Estudios', title='Intensidad Tecnológica (Evolución de Enfoques)', color_continuous_scale='Viridis', template='plotly_white')
+                    fig2.update_layout(xaxis=dict(tickmode='linear', dtick=1))
+                    st.plotly_chart(fig2, use_container_width=True)
+            with c4:
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.success("**¿Para qué sirve?**\n\nMuestra la evolución del **'¿Cómo?'**. Explica el paso de analítica simple a modelos complejos (Deep Learning/Transformers) en el tiempo.")
 
-            tecnologias_rastreo = [
-                'machine learning', 'deep learning', 'demand forecasting', 
-                'predictive analytics', 'neural networks', 'big data', 
-                'reinforcement learning', 'internet of things', 'blockchain'
-            ]
+        st.markdown("---")
 
-            registros_tiempo = []
-            for idx, row in df_kw_year.iterrows():
-                anio = int(row['year'])
-                texto_kw = str(row['author keywords'])
-                for tech in tecnologias_rastreo:
-                    if tech in texto_kw:
-                        registros_tiempo.append({'Año': anio, 'Técnica / Enfoque': tech})
-
-            if registros_tiempo:
-                df_matrix = pd.DataFrame(registros_tiempo)
-                df_grouped = df_matrix.value_counts().reset_index(name='Cantidad de Estudios').sort_values(by='Año')
-
-                fig2 = px.scatter(
-                    df_grouped, x='Año', y='Técnica / Enfoque', size='Cantidad de Estudios',
-                    color='Cantidad de Estudios', title='Gráfico de Intensidad Tecnológica (Evolución de Enfoques Core)',
-                    color_continuous_scale='Viridis', template='plotly_white'
-                )
-                fig2.update_layout(xaxis=dict(tickmode='linear', dtick=1))
-                st.plotly_chart(fig2, use_container_width=True)
-            else:
-                st.info("ℹ️ No se detectaron tecnologías core específicas en las palabras clave para los años seleccionados.")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # Gráfico Original: Distribución por Tipo de Documento
+        # 3. Gráfico de Torta (Document Type)
         if 'document type' in df_filtrado.columns:
-            type_counts = df_filtrado['document type'].value_counts().reset_index()
-            type_counts.columns = ['Tipo de Documento', 'Cantidad']
+            c5, c6 = st.columns([3, 1])
+            with c5:
+                type_counts = df_filtrado['document type'].value_counts().reset_index()
+                type_counts.columns = ['Tipo de Documento', 'Cantidad']
+                fig_type = px.pie(type_counts, values='Cantidad', names='Tipo de Documento', hole=0.4, title='Tipología Documental (Canales de Difusión)')
+                st.plotly_chart(fig_type, use_container_width=True)
+            with c6:
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.warning("**¿Para qué sirve?**\n\nMuestra el **nivel de validación**. El dominio de 'Articles' prueba que las soluciones ya pasaron por experimentos rigurosos.")
 
-            fig_type = px.pie(type_counts, values='Cantidad', names='Tipo de Documento', hole=0.4,
-                              title='Tipología Documental: Preferencia de Canales de Difusión',
-                              color_discrete_sequence=px.colors.qualitative.Safe)
-            fig_type.update_traces(textinfo='percent+label')
-            st.plotly_chart(fig_type, use_container_width=True)
+        st.markdown("---")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # Gráfico Original: Artículos más citados
+        # 4. Gráfico de Impacto (Citas)
         if 'cited by' in df_filtrado.columns and 'title' in df_filtrado.columns:
-            top_cited = df_filtrado.sort_values(by='cited by', ascending=False).head(10)
-            top_cited['titulo_corto'] = top_cited['title'].str.slice(0, 85) + "..."
-            
-            fig_cited = px.bar(top_cited, x='cited by', y='titulo_corto', orientation='h',
-                               title='Top 10 Artículos con Mayor Impacto Académico (Citas)',
-                               labels={'cited by': 'Número de Citas', 'titulo_corto': 'Artículo'},
-                               color='cited by', color_continuous_scale='Blues')
-            fig_cited.update_layout(yaxis={'categoryorder':'total ascending'})
-            st.plotly_chart(fig_cited, use_container_width=True)
+            c7, c8 = st.columns([3, 1])
+            with c7:
+                top_cited = df_filtrado.sort_values(by='cited by', ascending=False).head(10)
+                top_cited['titulo_corto'] = top_cited['title'].str.slice(0, 85) + "..."
+                fig_cited = px.bar(top_cited, x='cited by', y='titulo_corto', orientation='h', title='Top 10 Artículos con Mayor Impacto (Citas)', color='cited by', color_continuous_scale='Blues')
+                fig_cited.update_layout(yaxis={'categoryorder':'total ascending'})
+                st.plotly_chart(fig_cited, use_container_width=True)
+            with c8:
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.error("**¿Para qué sirve?**\n\nIdentifica **casos de éxito de referencia**. Apunta directo a las metodologías más respetadas y validadas por la comunidad científica.")
 
     with tab2:
-        st.subheader("Análisis de Actores Científicos y Semántica de Contenido")
+        st.subheader("Análisis de Actores Científicos y Semántica")
         
-        # Gráfico Original: Top Autores
+        # 5. Top Autores
         if 'authors' in df_filtrado.columns:
-            authors_series = df_filtrado['authors'].dropna().str.split(',').explode().str.strip()
-            authors_series = authors_series[authors_series != ""]
-            top_authors = authors_series.value_counts().head(10).reset_index()
-            top_authors.columns = ['Autor', 'Documentos']
-            top_authors = top_authors.sort_values(by='Documentos', ascending=True)
+            c9, c10 = st.columns([3, 1])
+            with c9:
+                authors_series = df_filtrado['authors'].dropna().str.split(',').explode().str.strip()
+                authors_series = authors_series[authors_series != ""]
+                top_authors = authors_series.value_counts().head(10).reset_index()
+                top_authors.columns = ['Autor', 'Documentos']
+                fig_author = px.bar(top_authors.sort_values(by='Documentos'), x='Documentos', y='Autor', orientation='h', title='Top 10 Autores más Productivos', text_auto=True, color='Documentos', color_continuous_scale='Cividis')
+                st.plotly_chart(fig_author, use_container_width=True)
+            with c10:
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.info("**¿Para qué sirve?**\n\nUbica a los **líderes de opinión**. Identifica a los expertos clave que lideran la innovación en la optimización de almacenes.")
 
-            fig_author = px.bar(top_authors, x='Documentos', y='Autor', orientation='h',
-                                title='Top 10 Autores con Mayor Producción Científica',
-                                text_auto=True, color='Documentos', color_continuous_scale='Cividis')
-            st.plotly_chart(fig_author, use_container_width=True)
+        st.markdown("---")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # Gráfico Original: Top Revistas
+        # 6. Top Revistas
         if 'source title' in df_filtrado.columns:
-            top_sources = df_filtrado['source title'].value_counts().head(10).reset_index()
-            top_sources.columns = ['Revista / Fuente', 'Artículos']
-            top_sources = top_sources.sort_values(by='Artículos', ascending=True)
+            c11, c12 = st.columns([3, 1])
+            with c11:
+                top_sources = df_filtrado['source title'].value_counts().head(10).reset_index()
+                top_sources.columns = ['Revista', 'Artículos']
+                fig_source = px.bar(top_sources.sort_values(by='Artículos'), x='Artículos', y='Revista', orientation='h', title='Top 10 Revistas de Publicación', text_auto=True, color='Artículos', color_continuous_scale='Viridis')
+                st.plotly_chart(fig_source, use_container_width=True)
+            with c12:
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.success("**¿Para qué sirve?**\n\nRevela el **enfoque disciplinario**. Define si el tema se enfoca desde la informática teórica o desde la ingeniería logística aplicada.")
 
-            fig_source = px.bar(top_sources, x='Artículos', y='Revista / Fuente', orientation='h',
-                                title='Top 10 Revistas donde se Publica sobre IA e Inventarios',
-                                text_auto=True, color='Artículos', color_continuous_scale='Viridis')
-            st.plotly_chart(fig_source, use_container_width=True)
+        st.markdown("---")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # 🔄 NUEVO INTEGRADO - GRÁFICO 1: Burbujas de Conceptos Específicos (Keywords de Autor)
+        # 7. Burbujas de Keywords
         if 'author keywords' in df_filtrado.columns:
-            st.markdown("### 🏷️ Minería de Textos: Palabras Clave del Autor")
-            keywords_totales = ", ".join(df_filtrado['author keywords'].dropna().astype(str).str.lower())
-            lista_kw = [k.strip() for k in re.split(r'[;,]', keywords_totales) if len(k.strip()) > 3]
-
-            conteo_kw = Counter(lista_kw)
-            
-            # Diccionario de Stopwords de tu código original
-            stopwords_keywords = {
-                'artificial intelligence', 'inventory management', 'supply chain', 'inventory control',
-                'supply chain management', 'optimization', 'management', 'analysis', 'system', 'systems',
-                'models', 'model', 'approach', 'research', 'paper', 'results', 'based', 'using', 'applications',
-                'case', 'study', 'performance', 'framework', 'industry', 'applied', 'application'
-            }
-
-            kw_filtradas = {k: v for k, v in conteo_kw.items() if k not in stopwords_keywords}
-
-            if kw_filtradas:
-                df_g1 = pd.DataFrame(kw_filtradas.items(), columns=['Concepto Clave', 'Frecuencia']).sort_values(by='Frecuencia', ascending=False).head(20)
-
-                fig1 = px.scatter(
-                    df_g1, x='Frecuencia', y='Concepto Clave', size='Frecuencia', color='Frecuencia',
-                    title='Gráfico de Burbujas: Sub-técnicas de IA y Componentes Logísticos más Investigados',
-                    color_continuous_scale='Cividis', template='plotly_white'
-                )
-                fig1.update_layout(yaxis={'categoryorder':'total ascending'})
-                st.plotly_chart(fig1, use_container_width=True)
-            else:
-                st.info("ℹ️ No se encontraron suficientes palabras clave para mostrar tras el filtrado.")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # Gráfico Original: Análisis Semántico en Abstracts (NLP)
-        if 'abstract' in df_filtrado.columns:
-            st.markdown("### 🔍 Análisis de Palabras Frecuentes en los Abstracts (NLP)")
-            
-            texto_completo = " ".join(df_filtrado['abstract'].dropna().astype(str).str.lower())
-            palabras = re.findall(r'\b[a-z]{4,}\b', texto_completo)
-            
-            stopwords_abstracts = {
-                'this', 'that', 'with', 'from', 'they', 'have', 'were', 'been', 'which',
-                'their', 'about', 'paper', 'study', 'research', 'using', 'based', 'used',
-                'analysis', 'results', 'proposed', 'method', 'approach', 'system', 'inventory',
-                'management', 'supply', 'chain', 'optimization', 'intelligence', 'artificial',
-                'application', 'applications', 'control', 'systems', 'models', 'model', 'results',
-                'framework', 'efficient', 'performance', 'paper', 'studies', 'presents', 'developed'
-            }
-            
-            palabras_filtradas = [p for p in palabras if p not in stopwords_abstracts]
-            conteo_palabras = Counter(palabras_filtradas).most_common(15)
-            
-            if conteo_palabras:
-                df_palabras = pd.DataFrame(conteo_palabras, columns=['Término', 'Frecuencia'])
-                df_palabras = df_palabras.sort_values(by='Frecuencia', ascending=True)
+            c13, c14 = st.columns([3, 1])
+            with c13:
+                keywords_totales = ", ".join(df_filtrado['author keywords'].dropna().astype(str).str.lower())
+                lista_kw = [k.strip() for k in re.split(r'[;,]', keywords_totales) if len(k.strip()) > 3]
+                conteo_kw = Counter(lista_kw)
+                stopwords_keywords = {'artificial intelligence', 'inventory management', 'supply chain', 'inventory control', 'supply chain management', 'optimization', 'management', 'analysis', 'system', 'systems', 'models', 'model', 'approach', 'research', 'paper', 'results', 'based', 'using', 'applications', 'case', 'study', 'performance', 'framework', 'industry', 'applied', 'application'}
+                kw_filtradas = {k: v for k, v in conteo_kw.items() if k not in stopwords_keywords}
                 
-                fig_words = px.bar(
-                    df_palabras, x='Frecuencia', y='Término', orientation='h',
-                    title='Top 15 Términos Conceptuales más Frecuentes en los Resúmenes de Scopus',
-                    labels={'Frecuencia': 'Conteo de Apariciones', 'Término': 'Palabra Clave'},
-                    color='Frecuencia', color_continuous_scale='Teal'
-                )
-                st.plotly_chart(fig_words, use_container_width=True)
+                if kw_filtradas:
+                    df_g1 = pd.DataFrame(kw_filtradas.items(), columns=['Concepto Clave', 'Frecuencia']).sort_values(by='Frecuencia', ascending=False).head(20)
+                    fig1 = px.scatter(df_g1, x='Frecuencia', y='Concepto Clave', size='Frecuencia', color='Frecuencia', title='Sub-técnicas de IA y Componentes Logísticos Comunes', color_continuous_scale='Cividis', template='plotly_white')
+                    st.plotly_chart(fig1, use_container_width=True)
+            with c14:
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.warning("**¿Para qué sirve?**\n\nMuestra las **herramientas exactas**. Identifica los pilares operativos más usados (ej. *demand forecasting*, *safety stock*).")
+
+        st.markdown("---")
+
+        # 8. NLP de Abstracts
+        if 'abstract' in df_filtrado.columns:
+            c15, c16 = st.columns([3, 1])
+            with c15:
+                texto_completo = " ".join(df_filtrado['abstract'].dropna().astype(str).str.lower())
+                palabras = re.findall(r'\b[a-z]{4,}\b', texto_completo)
+                stopwords_abstracts = {'this', 'that', 'with', 'from', 'they', 'have', 'were', 'been', 'which', 'their', 'about', 'paper', 'study', 'research', 'using', 'based', 'used', 'analysis', 'results', 'proposed', 'method', 'approach', 'system', 'inventory', 'management', 'supply', 'chain', 'optimization', 'intelligence', 'artificial', 'application', 'applications', 'control', 'systems', 'models', 'model', 'results', 'framework', 'efficient', 'performance', 'paper', 'studies', 'presents', 'developed'}
+                palabras_filtradas = [p for p in palabras if p not in stopwords_abstracts]
+                conteo_palabras = Counter(palabras_filtradas).most_common(15)
+                
+                if conteo_palabras:
+                    df_palabras = pd.DataFrame(conteo_palabras, columns=['Término', 'Frecuencia']).sort_values(by='Frecuencia', ascending=True)
+                    fig_words = px.bar(df_palabras, x='Frecuencia', y='Término', orientation='h', title='Top 15 Términos Frecuentes en Resúmenes (NLP)', color='Frecuencia', color_continuous_scale='Teal')
+                    st.plotly_chart(fig_words, use_container_width=True)
+            with c16:
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.error("**¿Para qué sirve?**\n\nRevela el **propósito de fondo**. Extrae las necesidades reales de los negocios comerciales (ej. reducir *costos*, mitigar *incertidumbre*).")
 
     with tab3:
         st.subheader("Dataset Completo Extraído de Scopus")
-        st.markdown("A continuación se presentan los metadatos esenciales limpios utilizados para el análisis estadístico:")
         columnas_visibles = [c for c in ['authors', 'title', 'year', 'source title', 'cited by', 'document type', 'author keywords', 'abstract'] if c in df_filtrado.columns]
         st.dataframe(df_filtrado[columnas_visibles], use_container_width=True)
 
-    # --- SECCIÓN DE CONCLUSIONES ---
+    # --- CONCLUSIONES ---
     st.markdown("---")
-    st.subheader("💡 Conclusiones del Análisis de Datos")
+    st.subheader("💡 Conclusión General")
     st.success(
-        f"El análisis de los **{total_articulos}** artículos científicos indexados en Scopus demuestra una fuerte tendencia creciente hacia la automatización logística. "
-        "Las publicaciones se concentran estratégicamente en revistas de ingeniería de sistemas y ciencias de decisiones, evidenciando que el **Demand Forecasting (Predicción de la Demanda)** "
-        "es el enfoque metodológico de Inteligencia Artificial que más impacto genera para mitigar el sobrestock y optimizar las cadenas de suministro en empresas comerciales modernas."
+        f"El análisis de los artículos indexados demuestra que la Inteligencia Artificial se aplica en las empresas comerciales "
+        f"principalmente mediante el **Demand Forecasting (Predicción de la Demanda)** para solucionar problemas de sobrestock e incertidumbre, "
+        f"evolucionando de analítica tradicional a modelos avanzados de Machine/Deep Learning."
     )
